@@ -1,0 +1,190 @@
+Option Explicit
+Sub stockmarket()
+'used ws as variable to go thorugh every workheet
+Dim ws As Worksheet
+'used for each loop to go through every worksheet
+For Each ws In Worksheets
+
+'Defining different variable
+Dim ticker As String
+Dim total, i, x As Long
+Dim firstvalue, lastvalue, counter, lastrow As Long
+
+Dim yearlychange, perchange As Double
+'setting up counter to go thrugh rows
+i = 2
+'setting up counter to write values to ticker,yearlychange,percentagechange and stock volume column
+x = 2
+' Initialing total for stock volume calculation
+total = 0
+
+'setting up cells name appropriately
+
+ws.Cells(1, 9).value = "Ticker"
+ws.Cells(1, 10).value = "YearlyChange"
+ws.Cells(1, 11).value = "PercentageChange"
+ws.Cells(1, 12).value = "StockVolume"
+
+'Calcualting last row in every worksheet
+
+lastrow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+'Setting counter to handle to find firt day value and last day value of a ticker
+ counter = 0
+ 'Setting up for statement to go through all rows in everyspreadsheet
+ For i = 2 To lastrow
+ 
+    ' if statement to compare tickers
+    
+    If ws.Cells(i + 1, 1).value <> ws.Cells(i, 1).value Then
+    ws.Cells(x, 9).value = ws.Cells(i, 1).value
+    'Adding stock volume when tickers does not match and comes from else statement
+    
+    total = total + ws.Cells(i, 7).value
+    ws.Cells(x, 12).value = total
+   
+    firstvalue = ws.Cells((i - counter), 6).value
+    lastvalue = ws.Cells(i, 6).value
+    yearlychange = lastvalue - firstvalue
+        ' if statement to set up color based on change
+        
+        If yearlychange > 0 Then
+            ws.Cells(x, 10).Interior.ColorIndex = 4
+        Else
+            ws.Cells(x, 10).Interior.ColorIndex = 3
+        End If
+        ws.Cells(x, 10).value = yearlychange
+            'Setting up if statement to handle overflow as some cases fisrtvalue may be 0 and first value can not be negative
+            If firstvalue > 0 Then
+    
+            perchange = yearlychange / firstvalue
+            End If
+     
+            ws.Cells(x, 11).value = perchange
+            ws.Cells(x, 11).NumberFormat = "0.00%"
+    
+         x = x + 1
+   'resetting total when tickers does not match
+    total = 0
+    'resetting counter when tickers does not match
+    counter = 0
+    
+  
+    Else
+    ' adding stock volume before last one vlaue
+    total = total + ws.Cells(i, 7).value
+    ' incrtementing  counter by 1 when ticket match
+    counter = counter + 1
+    
+    End If
+    
+ 
+Next i
+Next
+Call incdec
+'Call FindMax
+'Call increase
+'Call decrease
+End Sub
+
+Sub FindMax()
+Dim x As Double
+Dim j As Long
+Dim max As Double
+For j = 1 To Sheets.Count
+With Sheets(j)
+x = Application.WorksheetFunction.max(Sheets(j).Range("L:L"))
+If x > max Then
+max = x
+End If
+End With
+Next j
+
+Sheet1.Cells(2, 13).value = "Greatest Stock Volume"
+Sheet1.Cells(2, 15).value = max
+End Sub
+
+Sub increase()
+
+Dim x As Long
+Dim j As Long
+Dim max As Long
+For j = 1 To Sheets.Count
+With Sheets(j)
+x = Application.WorksheetFunction.max(Sheets(j).Range("K:K"))
+If x > max Then
+max = x
+End If
+End With
+Next j
+Sheet1.Cells(1, 15).value = "Value"
+Sheet1.Cells(1, 14).value = "Ticker"
+Sheet1.Cells(3, 13).value = "Greatest % increase"
+Sheet1.Cells(3, 15).value = max
+Sheet1.Cells(3, 15).NumberFormat = "0.00%"
+End Sub
+
+ 
+Sub decrease()
+Dim x As Double
+Dim j As Long
+Dim min As Double
+For j = 1 To Sheets.Count
+With Sheets(j)
+x = Application.WorksheetFunction.min(Sheets(j).Range("K:K"))
+If x < min Then
+min = x
+End If
+End With
+Next j
+Sheet1.Cells(4, 13).value = "Greatest % decrease"
+Sheet1.Cells(4, 15).value = min
+Sheet1.Cells(4, 15).NumberFormat = "0.00%"
+End Sub
+
+Sub incdec()
+Dim ws As Worksheet
+For Each ws In Worksheets
+
+Dim voltic, inctic, dectic As String
+Dim k, y As Integer
+Dim volmax, incmax, decmax As Double
+k = 2
+y = ws.Range("L1").End(xlDown).Row
+voltic = Cells(k, 9).value
+inctic = Cells(k, 9).value
+dectic = Cells(k, 9).value
+incmax = Cells(k, 11).value
+decmax = Cells(k, 11).value
+volmax = Cells(k, 12).value
+ws.Cells(1, 15).value = "Ticker"
+ws.Cells(1, 16).value = "Value"
+ws.Cells(2, 14).value = "Greatest % Increase"
+ws.Cells(3, 14).value = "Greatest % Decrease"
+ws.Cells(4, 14).value = "Greatest Total Volume"
+For k = 2 To y
+    If volmax < ws.Cells(k + 1, 12).value Then
+        volmax = ws.Cells(k + 1, 12).value
+        voltic = ws.Cells(k + 1, 9).value
+    End If
+    If decmax > ws.Cells(k + 1, 11).value Then
+        decmax = ws.Cells(k + 1, 11).value
+        dectic = ws.Cells(k + 1, 9).value
+    End If
+    If incmax < ws.Cells(k + 1, 11).value Then
+        incmax = ws.Cells(k + 1, 11).value
+        inctic = ws.Cells(k + 1, 9).value
+    End If
+    ws.Cells(2, 16).value = incmax
+    ws.Cells(2, 16).NumberFormat = "0.00%"
+    ws.Cells(2, 15).value = inctic
+    ws.Cells(3, 16).value = decmax
+    ws.Cells(3, 16).NumberFormat = "0.00%"
+    ws.Cells(3, 15).value = dectic
+    ws.Cells(4, 16).value = volmax
+    ws.Cells(4, 15).value = voltic
+    
+Next k
+Next
+    
+End Sub
+
